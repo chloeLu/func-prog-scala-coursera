@@ -192,20 +192,13 @@ object Huffman {
     * the resulting list of characters.
     */
   def decode(tree: CodeTree, bits: List[Bit]): List[Char] = {
-    def runDecode(currNode: CodeTree, currBits: List[Bit]): List[Char] = {
-      currBits match {
-        case Nil => currNode match {
-          case Leaf(char, _) => List[Char](char)
-          case _ => throw new Exception("Cannot decode")
-        }
-        case _ => currNode match {
-          case Leaf(char, _) => char :: runDecode(tree, currBits)
-          case Fork(left, right, _, _) => currBits.head match {
-            case 0 => runDecode(left, currBits.tail)
-            case 1 => runDecode(right, currBits.tail)
-          }
-        }
-      }
+    def runDecode(currNode: CodeTree, currBits: List[Bit]): List[Char] = (currNode, currBits) match {
+      case (Leaf(char, _), Nil) => List(char)
+      case (_, Nil) => throw new Exception ("Cannot decode")
+      case (Leaf(char, _), _) => char::runDecode(tree, currBits)
+      case (Fork(l,_,_,_), 0::restBits) => runDecode(l, restBits)
+      case (Fork(_,r,_,_), 1::restBits) => runDecode(r, restBits)
+      case default => throw new Exception("Cannot decode")
     }
 
     runDecode(tree, bits)
